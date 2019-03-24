@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import Header from './components/Header';
 import './App.css';
 
 class App extends Component {
@@ -13,7 +14,7 @@ class App extends Component {
 
 	        <div className='main-section'>
 	          <div className='main-section-header' >
-              Spot A Song
+              <Header />
             </div>
 	          <div className='main-section-container'>
               Main Section
