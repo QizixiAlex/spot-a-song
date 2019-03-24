@@ -1,5 +1,6 @@
 
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import ReactModalLogin from "react-modal-login";
 import './Header.css';
 
@@ -59,6 +60,8 @@ class Header extends Component {
   onLogin() {
     // TODO: login
     console.log('login');
+    //test
+    this.props.onUserLogin(1,'Jack');
   }
 
   onRegister() {
@@ -67,10 +70,15 @@ class Header extends Component {
   }
 
   render() {
+    let loginStatus;
+    if(this.props.userName === null) {
+      loginStatus = <button onClick={() => this.openModal()}>SIGN IN</button>;
+    } else {
+      loginStatus = <p> Welcome {this.props.userName} </p>
+    }
     return (
       <div>
-        <button onClick={() => this.openModal()}>SIGN IN</button>
-
+        {loginStatus}
         <ReactModalLogin
           visible={this.state.showModal}
           onCloseModal={this.closeModal.bind(this)}
@@ -152,4 +160,16 @@ class Header extends Component {
   }
 }
 
-export default Header;
+const mapStateToProps = state => {
+    return {
+        userName: state.userName
+    };
+};
+
+const mapDispatchToProps = dispatch => {
+    return {
+        onUserLogin: (userId, userName) => dispatch({type: 'USER_LOGIN', userId: userId, userName: userName})
+    };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Header);
