@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import Header from './components/Header';
+import SongDisplay from './components/SongDisplay';
+import SideBar from './components/SideBar';
 import './App.css';
 
 class App extends Component {
@@ -9,7 +11,7 @@ class App extends Component {
 	      <div className='app-container'>
 
 	        <div className='side-bar'>
-	          sidebar
+	          <SideBar />
 	        </div>
 
 	        <div className='main-section'>
@@ -17,7 +19,7 @@ class App extends Component {
               <Header />
             </div>
 	          <div className='main-section-container'>
-              Main Section
+              <SongDisplay />
 	          </div>
 	        </div>
 	      </div>

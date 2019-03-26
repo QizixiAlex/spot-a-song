@@ -1,10 +1,12 @@
 
 import React, { Component } from 'react';
+import axios from 'axios';
 import { connect } from 'react-redux';
 import ReactModalLogin from "react-modal-login";
 import './Header.css';
 
 class Header extends Component {
+
   constructor(props) {
     super(props);
 
@@ -29,7 +31,7 @@ class Header extends Component {
   }
 
   onLoginSuccess(method, response) {
-    console.log("logged successfully with " + method);
+    this.closeModal();
   }
 
   onLoginFail(method, response) {
@@ -58,15 +60,61 @@ class Header extends Component {
   }
 
   onLogin() {
-    // TODO: login
-    console.log('login');
-    //test
-    this.props.onUserLogin(1,'Jack');
+    const userName = document.querySelector('#username').value;
+    const userPassword = document.querySelector('#password').value;
+    const serverUrl = 'http://localhost:4000';
+    if (!userName || !userPassword) {
+      this.setState({
+        error: true
+      });
+      return;
+    }
+    //call backend
+    axios.post(serverUrl+'/user/login', {
+      userName: userName,
+      userPassword: userPassword
+    }).then(res => {
+      let loginResult = res.data.data;
+      if (loginResult.length === 0) {
+        this.setState({
+          error: true
+        });
+      } else {
+        const userInfo = loginResult[0];
+        this.props.onUserLogin(userInfo.user_id,userInfo.username);
+        this.onLoginSuccess();
+      }
+    }).catch(err => {
+      this.setState({
+        error: true
+      });
+    });
   }
 
   onRegister() {
-    // TODO: register
-    console.log('register');
+    const userName = document.querySelector('#username').value;
+    const userPassword = document.querySelector('#password').value;
+    const serverUrl = 'http://localhost:4000';
+    if (!userName || !userPassword) {
+      this.setState({
+        error: true
+      });
+      return;
+    }
+    //call backend
+    axios.post(serverUrl+'/user/register', {
+      userName: userName,
+      userPassword: userPassword
+    }).then(res => {
+      let registerResult = res.data.data;
+      const userId = registerResult.insertId;
+      this.props.onUserLogin(userId,userName);
+      this.onLoginSuccess();
+    }).catch(err => {
+      this.setState({
+        error: true
+      });
+    });
   }
 
   render() {
@@ -101,12 +149,12 @@ class Header extends Component {
             loginInputs: [
               {
                 containerClass: 'RML-form-group',
-                label: 'Email',
-                type: 'email',
+                label: 'Username',
+                type: 'username',
                 inputClass: 'RML-form-control',
-                id: 'email',
-                name: 'email',
-                placeholder: 'Email',
+                id: 'username',
+                name: 'username',
+                placeholder: 'Username',
               },
               {
                 containerClass: 'RML-form-group',
@@ -121,21 +169,12 @@ class Header extends Component {
             registerInputs: [
               {
                 containerClass: 'RML-form-group',
-                label: 'Nickname',
+                label: 'Username',
                 type: 'text',
                 inputClass: 'RML-form-control',
-                id: 'login',
-                name: 'login',
-                placeholder: 'Nickname',
-              },
-              {
-                containerClass: 'RML-form-group',
-                label: 'Email',
-                type: 'email',
-                inputClass: 'RML-form-control',
-                id: 'email',
-                name: 'email',
-                placeholder: 'Email',
+                id: 'username',
+                name: 'username',
+                placeholder: 'Username',
               },
               {
                 containerClass: 'RML-form-group',
