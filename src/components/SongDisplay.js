@@ -16,12 +16,11 @@ class SongDisplay extends Component {
     if (this.props.songList.length === 0) {
       this.getAllSongs();
     }
-    console.log(this.props.songList);
     return (
     <div>
       <ListGroup variant="flush">
         {this.props.songList.map(song => {
-          return <ListGroup.Item>{song.title}</ListGroup.Item>
+          return <ListGroup.Item key={song.song_id}>{song.title}</ListGroup.Item>
         })}
       </ListGroup>
     </div>

@@ -1,11 +1,17 @@
-
 import React, { Component } from 'react';
 import axios from 'axios';
 import { connect } from 'react-redux';
 import ReactModalLogin from "react-modal-login";
-import './Header.css';
+import './MyHeader.css';
+import {
+  Layout, Menu, Breadcrumb, Icon, Button
+} from 'antd';
 
-class Header extends Component {
+const {
+  Header, Content, Footer, Sider,
+} = Layout;
+
+class MyHeader extends Component {
 
   constructor(props) {
     super(props);
@@ -67,7 +73,7 @@ class Header extends Component {
       this.setState({
         error: true
       });
-      return;
+      return
     }
     //call backend
     axios.post(serverUrl+'/user/login', {
@@ -120,13 +126,24 @@ class Header extends Component {
   render() {
     let loginStatus;
     if(this.props.userName === null) {
-      loginStatus = <button onClick={() => this.openModal()}>SIGN IN</button>;
+      loginStatus = <Button type="primary" onClick={() => this.openModal()}>Sign In</Button>;
     } else {
-      loginStatus = <p> Welcome {this.props.userName} </p>
+      loginStatus = `Welcome ${this.props.userName}`
     }
     return (
       <div>
-        {loginStatus}
+        <Header className="header">
+          <div className="logo" />
+          <Menu
+            selectable={false}
+            theme="dark"
+            mode="horizontal"
+            style={{ lineHeight: '64px' }}
+          >
+            <Menu.Item style={{fontSize: '22px'}}>Spot A Song</Menu.Item>
+            <Menu.Item style={{float: 'right'}}>{loginStatus}</Menu.Item>
+          </Menu>
+        </Header>
         <ReactModalLogin
           visible={this.state.showModal}
           onCloseModal={this.closeModal.bind(this)}
@@ -211,4 +228,4 @@ const mapDispatchToProps = dispatch => {
     };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Header);
+export default connect(mapStateToProps, mapDispatchToProps)(MyHeader);
