@@ -1,18 +1,22 @@
 import React, { Component } from 'react';
-import { Layout, Menu, Icon, Switch } from 'antd';
+import { Layout, Menu, Button, Modal, Input } from 'antd';
 import axios from 'axios';
 import { connect } from 'react-redux';
 import './SideBar.css';
 
 const SubMenu = Menu.SubMenu;
-const {
-  Header, Content, Footer, Sider,
-} = Layout;
+const { Sider } = Layout;
 
 class SideBar extends Component {
+
   state = {
     theme: 'dark',
     current: '1',
+    genreList: [],
+    artistList: [],
+    serverUrl: 'http://localhost:4000',
+    visible: false,
+    newPlaylistName: ''
   }
 
   changeTheme = (value) => {
@@ -22,42 +26,103 @@ class SideBar extends Component {
   }
 
   handleClick = (e) => {
-    console.log('click ', e);
     this.setState({
       current: e.key,
     });
   }
 
-  userPlaylists() {
-    const serverUrl = 'http://localhost:4000';
+  onInputChange = (e) => {
+    this.setState({newPlaylistName: e.target.value});
+  }
+
+  createNewplaylist() {
+    this.setState({
+      visible: true,
+    });
+  }
+
+  updatePlaylists() {
     if (this.props.userId) {
-      axios.get(serverUrl+`/playlists?userId=${this.props.userId}`)
+      axios.get(this.state.serverUrl+`/playlists?userId=${this.props.userId}`)
       .then(res=>{
+        console.log(res.data.data);
         this.props.onUpdateUser(res.data.data);
       })
     }
   }
 
   getAllSongs() {
-    const serverUrl = 'http://localhost:4000';
-    axios.get(serverUrl+'/songs').then(res => {
-      this.props.onSelectPlaylist(res.data.data);
+    axios.get(this.state.serverUrl+'/songs').then(res => {
+      this.props.onChangeSongList(res.data.data);
+    })
+  }
+
+  getAllGenres() {
+    axios.get(this.state.serverUrl+'/genres').then(res => {
+      this.setState({
+        genreList: res.data.data,
+      });
+    })
+  }
+
+  getAllArtists() {
+    axios.get(this.state.serverUrl+'/artists').then(res => {
+      this.setState({
+        artistList: res.data.data,
+      });
+    })
+  }
+
+  filterByGenre(genreName) {
+    axios.get(this.state.serverUrl+`/genre_songs?genreName='${genreName}'`).then(res => {
+      this.props.onChangeSongList(res.data.data);
+    }).catch(err => {
+      this.props.onChangeSongList([]);
+    })
+  }
+
+  filterByArtist(artistId) {
+    axios.get(this.state.serverUrl+`/artist_songs?artistId='${artistId}'`).then(res => {
+      this.props.onChangeSongList(res.data.data);
+    }).catch(err => {
+      this.props.onChangeSongList([]);
     })
   }
 
   onSelectPlaylist(playlistId) {
-    const serverUrl = 'http://localhost:4000';
     if (playlistId) {
-      axios.get(serverUrl+`/playlist_songs?playlistId=${playlistId}`)
+      axios.get(this.state.serverUrl+`/playlist_songs?playlistId=${playlistId}`)
       .then(res=>{
-        this.props.onSelectPlaylist(res.data.data);
+        this.props.onChangeSongList(res.data.data);
       })
     }
   }
 
+  componentDidMount(){
+    this.getAllGenres();
+    this.getAllArtists();
+  }
+
+  handleSubmit (newPlaylistName){
+    axios.post(this.state.serverUrl+'/playlists', {
+      playlistName: newPlaylistName,
+      userId: this.props.userId
+    }).then(res=>{
+      this.updatePlaylists();
+    });
+    this.setState({
+      visible: false,
+    });
+  }
+
+  handleCancel (){
+    this.setState({
+      visible: false,
+    });
+  }
+
   render() {
-    this.userPlaylists();
-    return <Sider width={240} style={{ background: '#fff' }}>
+    return <Sider width={256} height={280} theme={this.state.theme}>
         <Menu
           theme={this.state.theme}
           onClick={this.handleClick}
@@ -67,35 +132,37 @@ class SideBar extends Component {
           mode="inline"
         >
         <Menu.Item onClick={()=>{this.getAllSongs()}}>Music Library</Menu.Item>
+        <SubMenu title="Artists" >
+          {this.state.artistList.map(artist => {
+            return <Menu.Item key={artist.artist_id} onClick={()=>{this.filterByArtist(artist.artist_id)}}>{artist.artist_name}</Menu.Item>
+          })}
+        </SubMenu>
+        <SubMenu title="Genres">
+          {this.state.genreList.map(genre => {
+            return <Menu.Item key={genre.genre} onClick={()=>{this.filterByGenre(genre.genre)}}>{genre.genre}</Menu.Item>
+          })}
+        </SubMenu>
         {this.props.userName &&
           <SubMenu title={`${this.props.userName}'s playlists'`}>
           {this.props.playlists.map(playlist => {
             return <Menu.Item key={playlist.playlist_id} onClick={()=>{this.onSelectPlaylist(playlist.playlist_id)}}>{playlist.playlist_name}</Menu.Item>
-          })}
+          })
+         }
+         <Menu.Item onClick={()=>{this.createNewplaylist()}}>Create New Playlist</Menu.Item>
           </SubMenu>
         }
-          <SubMenu key="sub1" title={<span><Icon type="mail" /><span>Navigation One</span></span>}>
-            <Menu.Item key="1">Option 1</Menu.Item>
-            <Menu.Item key="2">Option 2</Menu.Item>
-            <Menu.Item key="3">Option 3</Menu.Item>
-            <Menu.Item key="4">Option 4</Menu.Item>
-          </SubMenu>
-          <SubMenu key="sub2" title={<span><Icon type="appstore" /><span>Navigtion Two</span></span>}>
-            <Menu.Item key="5">Option 5</Menu.Item>
-            <Menu.Item key="6">Option 6</Menu.Item>
-            <SubMenu key="sub3" title="Submenu">
-              <Menu.Item key="7">Option 7</Menu.Item>
-              <Menu.Item key="8">Option 8</Menu.Item>
-            </SubMenu>
-          </SubMenu>
-          <SubMenu key="sub4" title={<span><Icon type="setting" /><span>Navigation Three</span></span>}>
-            <Menu.Item key="9">Option 9</Menu.Item>
-            <Menu.Item key="10">Option 10</Menu.Item>
-            <Menu.Item key="11">Option 11</Menu.Item>
-            <Menu.Item key="12">Option 12</Menu.Item>
-          </SubMenu>
         </Menu>
-      </Sider>
+        <Modal title="New Playlist"
+          visible={this.state.visible}
+          onOk={()=>{this.handleSubmit(this.state.newPlaylistName)}}
+          onCancel={()=>{this.handleCancel()}}
+        >
+        <Input
+          placeholder="Enter new playlist name"
+          onChange={this.onInputChange}
+        />
+        </Modal>
+        </Sider>
   }
 }
 
@@ -110,7 +177,7 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
     return {
         onUpdateUser: (playlists) => dispatch({type: 'SET_PLAYLISTS', playlists: playlists}),
-        onSelectPlaylist: (songs) => dispatch({type: 'SET_SONGLIST', songList: songs})
+        onChangeSongList: (songs) => dispatch({type: 'SET_SONGLIST', songList: songs})
     };
 };
 

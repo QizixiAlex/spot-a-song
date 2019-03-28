@@ -4,11 +4,11 @@ import { connect } from 'react-redux';
 import ReactModalLogin from "react-modal-login";
 import './MyHeader.css';
 import {
-  Layout, Menu, Breadcrumb, Icon, Button
+  Layout, Menu, Button
 } from 'antd';
 
 const {
-  Header, Content, Footer, Sider,
+  Header,
 } = Layout;
 
 class MyHeader extends Component {
@@ -19,7 +19,8 @@ class MyHeader extends Component {
     this.state = {
       showModal: false,
       loading: false,
-      error: null
+      error: null,
+      serverUrl: 'http://localhost:4000'
     };
   }
 
@@ -27,6 +28,13 @@ class MyHeader extends Component {
     this.setState({
       showModal: true
     });
+  }
+
+  userPlaylists(userId) {
+    axios.get(this.state.serverUrl+`/playlists?userId=${userId}`)
+    .then(res=>{
+      this.props.onChangePlaylists(res.data.data);
+    })
   }
 
   closeModal() {
@@ -88,6 +96,7 @@ class MyHeader extends Component {
       } else {
         const userInfo = loginResult[0];
         this.props.onUserLogin(userInfo.user_id,userInfo.username);
+        this.userPlaylists(userInfo.user_id);
         this.onLoginSuccess();
       }
     }).catch(err => {
@@ -140,7 +149,7 @@ class MyHeader extends Component {
             mode="horizontal"
             style={{ lineHeight: '64px' }}
           >
-            <Menu.Item style={{fontSize: '22px'}}>Spot A Song</Menu.Item>
+            <Menu.Item style={{fontSize: '22px', left: '550px'}}>Spot A Song</Menu.Item>
             <Menu.Item style={{float: 'right'}}>{loginStatus}</Menu.Item>
           </Menu>
         </Header>
@@ -224,7 +233,9 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
     return {
-        onUserLogin: (userId, userName) => dispatch({type: 'USER_LOGIN', userId: userId, userName: userName})
+        onUserLogin: (userId, userName) => dispatch({type: 'USER_LOGIN', userId: userId, userName: userName}),
+        onChangePlaylists: (playlists) => dispatch({type: 'SET_PLAYLISTS', playlists: playlists})
+
     };
 };
 

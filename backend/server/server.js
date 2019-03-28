@@ -77,7 +77,7 @@ app.get('/songs', (req, res)=>{
 //get playlists of current user
 app.get('/playlists', (req, res)=>{
   const {userId} = req.query;
-  let userPlaylistsQuery = `SELECT distinct playlists.playlist_name, playlists.playlist_id FROM playlists, playlist_songs WHERE playlists.user_id = ${userId} AND playlists.playlist_id = playlist_songs.playlist_id`;
+  let userPlaylistsQuery = `SELECT playlist_name, playlist_id FROM playlists WHERE user_id = ${userId}`;
   connection.query(userPlaylistsQuery, (err, results) => {
     if (err) {
       return res.send(err);
@@ -94,6 +94,80 @@ app.get('/playlist_songs', (req, res)=>{
   const {playlistId} = req.query;
   let playlistSongsQuery = `SELECT * FROM playlist_songs, songs WHERE playlist_songs.playlist_id = ${playlistId} AND playlist_songs.song_id = songs.song_id`;
   connection.query(playlistSongsQuery, (err, results) => {
+    if (err) {
+      return res.send(err);
+    } else {
+      return res.json({
+        data: results
+      });
+    }
+  })
+})
+
+//get all generes
+app.get('/genres', (req, res)=>{
+  let genreQuery = `SELECT * FROM genres`;
+  connection.query(genreQuery, (err, results) => {
+    if (err) {
+      return res.send(err);
+    } else {
+      return res.json({
+        data: results
+      })
+    }
+  })
+})
+
+//get all artists
+app.get('/artists', (req, res)=>{
+  let artistsQuery = `SELECT * FROM artists`;
+  connection.query(artistsQuery, (err, results) => {
+    if (err) {
+      return res.send(err);
+    } else {
+      return res.json({
+        data: results
+      })
+    }
+  })
+})
+
+//get genre songs
+app.get('/genre_songs', (req, res)=>{
+  const {genreName} = req.query;
+  let genreSongsQuery = `SELECT * FROM songs WHERE genre = ${genreName}`;
+  connection.query(genreSongsQuery, (err, results) => {
+    if (err) {
+      return res.send(err);
+    } else {
+      return res.json({
+        data: results
+      });
+    }
+  })
+})
+
+//get artist songs
+app.get('/artist_songs', (req, res)=>{
+  const {artistId} = req.query;
+  let artistSongsQuery = `SELECT * FROM songs WHERE songs.song_id IN (SELECT song_id FROM made_by WHERE artist_id = ${artistId})`;
+  connection.query(artistSongsQuery, (err, results) => {
+    if (err) {
+      return res.send(err);
+    } else {
+      return res.json({
+        data: results
+      });
+    }
+  })
+})
+
+//create playList
+app.post('/playlists', (req, res)=>{
+  const playlistName = req.body.playlistName;
+  const userId = req.body.userId;
+  let createPlaylistQuery = `INSERT INTO playlists(user_id, playlist_name) VALUES(${userId}, '${playlistName}')`;
+  connection.query(createPlaylistQuery, (err, results) => {
     if (err) {
       return res.send(err);
     } else {

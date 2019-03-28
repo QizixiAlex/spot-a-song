@@ -17,12 +17,12 @@ const reducer = (state = initialState, action) => {
     case "SET_SONGLIST":
       return {
         ...state,
-        songList: action.songList
+        songList: action.songList.slice()
       };
     case "SET_PLAYLISTS":
       return {
         ...state,
-        playlists: action.playlists
+        playlists: action.playlists.slice()
       };
     default:
       return state;

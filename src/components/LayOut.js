@@ -1,14 +1,11 @@
 import React, { Component } from 'react';
-import {
-  Layout, Menu, Breadcrumb, Icon,
-} from 'antd';
+import { Layout } from 'antd';
 import MyHeader from './MyHeader';
 import SideBar from './SideBar';
 import SongDisplay from './SongDisplay';
 
-const { SubMenu } = Menu;
 const {
-  Header, Content, Footer, Sider,
+  Content, Footer,
 } = Layout;
 
 class LayOut extends Component {
@@ -17,14 +14,14 @@ class LayOut extends Component {
       <MyHeader />
       <Content>
         <Layout style={{ background: '#fff' }}>
-          <SideBar style={{ maxWidth: 300, padding: '0 24px', minHeight: 280 }}/>
-          <Content style={{ padding: '0 0 0 24px',minHeight: 280 }}>
+          <SideBar style={{ padding: '0 24px' }}/>
+          <Content style={{ padding: '0 24px',minHeight: 280 }}>
             <SongDisplay />
           </Content>
         </Layout>
       </Content>
       <Footer style={{ textAlign: 'center' }}>
-        Ant Design ©2018 Created by Ant UED
+        Spot A Song©2019
       </Footer>
     </Layout>
   }

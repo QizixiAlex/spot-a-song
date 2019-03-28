@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
+import { List, Avatar } from 'antd';
 import axios from 'axios';
 import { connect } from 'react-redux';
-import ListGroup from 'react-bootstrap/ListGroup';
 import './SongDisplay.css';
 
 class SongDisplay extends Component {
@@ -12,17 +12,26 @@ class SongDisplay extends Component {
     })
   }
 
+  componentDidMount() {
+    this.getAllSongs();
+  }
+
   render() {
-    if (this.props.songList.length === 0) {
-      this.getAllSongs();
-    }
     return (
     <div>
-      <ListGroup variant="flush">
-        {this.props.songList.map(song => {
-          return <ListGroup.Item key={song.song_id}>{song.title}</ListGroup.Item>
-        })}
-      </ListGroup>
+      <List
+        itemLayout="horizontal"
+        dataSource={this.props.songList}
+        renderItem={song => (
+          <List.Item>
+            <List.Item.Meta
+              avatar={<Avatar src="https://img.icons8.com/color/48/000000/music-record.png" />}
+              title={<a>{song.title}</a>}
+              description={song.genre}
+            />
+          </List.Item>
+        )}/>
+        <a href="https://icons8.com/icon/63803/music-record">Music Record icon by Icons8</a>
     </div>
     );
   }
