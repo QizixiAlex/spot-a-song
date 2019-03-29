@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Layout, Menu, Button, Modal, Input } from 'antd';
+import { Layout, Menu, Modal, Input, Icon } from 'antd';
 import axios from 'axios';
 import { connect } from 'react-redux';
 import './SideBar.css';
@@ -15,8 +15,11 @@ class SideBar extends Component {
     genreList: [],
     artistList: [],
     serverUrl: 'http://localhost:4000',
-    visible: false,
-    newPlaylistName: ''
+    newPlaylistVisible: false,
+    newPlaylistName: '',
+    editPlaylistVisible: false,
+    selectedPlaylistId: null,
+    deletePlaylistVisible: false,
   }
 
   changeTheme = (value) => {
@@ -37,7 +40,7 @@ class SideBar extends Component {
 
   createNewplaylist() {
     this.setState({
-      visible: true,
+      newPlaylistVisible: true,
     });
   }
 
@@ -45,8 +48,7 @@ class SideBar extends Component {
     if (this.props.userId) {
       axios.get(this.state.serverUrl+`/playlists?userId=${this.props.userId}`)
       .then(res=>{
-        console.log(res.data.data);
-        this.props.onUpdateUser(res.data.data);
+        this.props.onChangePlaylist(res.data.data);
       })
     }
   }
@@ -111,13 +113,53 @@ class SideBar extends Component {
       this.updatePlaylists();
     });
     this.setState({
-      visible: false,
+      newPlaylistVisible: false,
     });
   }
 
   handleCancel (){
     this.setState({
-      visible: false,
+      newPlaylistVisible: false,
+      editPlaylistVisible: false,
+      deletePlaylistVisible: false,
+    });
+  }
+
+  changePlaylistName() {
+    axios.post(this.state.serverUrl+'/rename_playlist', {
+      newPlaylistName: this.state.newPlaylistName,
+      playlistId: this.state.selectedPlaylistId
+    }).then(res=>{
+      this.updatePlaylists();
+    });
+    this.setState({
+      editPlaylistVisible: false,
+      selectedPlaylistId: null,
+    });
+  }
+
+  onOpenEdit(playlistId, playlistName) {
+    this.setState({
+      selectedPlaylistId: playlistId,
+      editPlaylistVisible: true,
+      newPlaylistName: playlistName
+    });
+  }
+
+  onOpenDelete(playlistId) {
+    this.setState({
+      selectedPlaylistId: playlistId,
+      deletePlaylistVisible: true,
+    });
+  }
+
+  deletePlaylist() {
+    axios.delete(this.state.serverUrl+`/playlist?playlistId=${this.state.selectedPlaylistId}`)
+    .then(res=>{
+      this.updatePlaylists();
+    });
+    this.setState({
+      deletePlaylistVisible: false
     });
   }
 
@@ -134,7 +176,7 @@ class SideBar extends Component {
         <Menu.Item onClick={()=>{this.getAllSongs()}}>Music Library</Menu.Item>
         <SubMenu title="Artists" >
           {this.state.artistList.map(artist => {
-            return <Menu.Item key={artist.artist_id} onClick={()=>{this.filterByArtist(artist.artist_id)}}>{artist.artist_name}</Menu.Item>
+            return <Menu.Item key={artist.artist_name} onClick={()=>{this.filterByArtist(artist.artist_id)}}>{artist.artist_name}</Menu.Item>
           })}
         </SubMenu>
         <SubMenu title="Genres">
@@ -145,7 +187,11 @@ class SideBar extends Component {
         {this.props.userName &&
           <SubMenu title={`${this.props.userName}'s playlists'`}>
           {this.props.playlists.map(playlist => {
-            return <Menu.Item key={playlist.playlist_id} onClick={()=>{this.onSelectPlaylist(playlist.playlist_id)}}>{playlist.playlist_name}</Menu.Item>
+            return <Menu.Item key={playlist.playlist_id} onClick={()=>{this.onSelectPlaylist(playlist.playlist_id)}}>
+                    {playlist.playlist_name}
+                    <Icon onClick={()=>this.onOpenDelete(playlist.playlist_id)} style={{float: 'right', position: 'absolute', top: '35%', left: '75%'}} type="delete" />
+                    <Icon onClick={()=>this.onOpenEdit(playlist.playlist_id, playlist.playlist_name)} style={{float: 'right', position: 'absolute', top: '35%', left: '85%'}} type="edit" />
+                  </Menu.Item>
           })
          }
          <Menu.Item onClick={()=>{this.createNewplaylist()}}>Create New Playlist</Menu.Item>
@@ -153,14 +199,31 @@ class SideBar extends Component {
         }
         </Menu>
         <Modal title="New Playlist"
-          visible={this.state.visible}
+          visible={this.state.newPlaylistVisible}
           onOk={()=>{this.handleSubmit(this.state.newPlaylistName)}}
           onCancel={()=>{this.handleCancel()}}
         >
-        <Input
-          placeholder="Enter new playlist name"
-          onChange={this.onInputChange}
-        />
+          <Input
+            placeholder="Enter new playlist name"
+            onChange={this.onInputChange}
+          />
+        </Modal>
+        <Modal title="Update Playlist Name"
+          visible={this.state.editPlaylistVisible}
+          onOk={()=>{this.changePlaylistName()}}
+          onCancel={()=>{this.handleCancel()}}
+        >
+          <Input
+            onChange={this.onInputChange}
+          />
+        </Modal>
+        <Modal title="Delete Playlist"
+          visible={this.state.deletePlaylistVisible}
+          onOk={()=>{this.deletePlaylist()}}
+          onCancel={()=>{this.handleCancel()}}
+        >
+          <Icon type="warning" />
+          <p>Are you sure you want to delete this playlist?</p>
         </Modal>
         </Sider>
   }
@@ -176,7 +239,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
     return {
-        onUpdateUser: (playlists) => dispatch({type: 'SET_PLAYLISTS', playlists: playlists}),
+        onChangePlaylist: (playlists) => dispatch({type: 'SET_PLAYLISTS', playlists: playlists}),
         onChangeSongList: (songs) => dispatch({type: 'SET_SONGLIST', songList: songs})
     };
 };

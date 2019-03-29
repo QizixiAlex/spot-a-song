@@ -178,6 +178,53 @@ app.post('/playlists', (req, res)=>{
   })
 })
 
+//update playlist name
+app.post('/rename_playlist', (req, res)=>{
+  const playlistId = req.body.playlistId;
+  const newPlaylistName = req.body.newPlaylistName;
+  let updatePlaylistNameQuery = `UPDATE playlists SET playlist_name = '${newPlaylistName}' WHERE playlist_id = ${playlistId}`;
+  connection.query(updatePlaylistNameQuery, (err, results) => {
+    if (err) {
+      return res.send(err);
+    } else {
+      return res.json({
+        data: results
+      });
+    }
+  })
+})
+
+//add song to playList
+app.post('/add_to_playlist', (req, res)=>{
+  const playlistId = req.body.playlistId;
+  const songId = req.body.songId;
+  let addToPlaylistQuery = `INSERT INTO playlist_songs(playlist_id, song_id) VALUES(${playlistId}, ${songId})`;
+  connection.query(addToPlaylistQuery, (err, results) => {
+    if (err) {
+      return res.send(err);
+    } else {
+      return res.json({
+        data: results
+      });
+    }
+  })
+})
+
+//delete playList
+app.delete('/playlist', (req, res)=>{
+  const { playlistId } = req.query;
+  let delPlaylistQuery = `DELETE FROM playlists WHERE playlist_id = ${playlistId}`;
+  connection.query(delPlaylistQuery, (err, results) => {
+    if (err) {
+      return res.send(err);
+    } else {
+      return res.json({
+        data: results
+      });
+    }
+  })
+})
+
 app.listen(4000, ()=>{
   console.log('dev server listening on port 4000!');
 })
